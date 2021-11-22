@@ -72,3 +72,19 @@ set_project:
 
 create_bucket:
 	@gsutil mb -l ${REGION} -p ${PROJECT_ID} gs://${BUCKET_NAME}
+
+
+# ----------------------------------
+#      Upload trainig data to GCP
+# ----------------------------------
+
+# path to the file to upload to GCP (the path to the file should be absolute or should match the directory where the make command is ran)
+# replace with your local path to the `train_1k.csv` and make sure to put the path between quotes
+LOCAL_PATH="/Users/Moe/code/moe221/final_project/diversity_in_cinema/raw_data/fairface"
+
+# bucket directory in which to store the uploaded file (`data` is an arbitrary name that we choose to use)
+BUCKET_FOLDER=data/training_data
+
+upload_data:
+    # @gsutil cp train_1k.csv gs://wagon-ml-my-bucket-name/data/train_1k.csv
+	@gsutil -m cp -R ${LOCAL_PATH} gs://${BUCKET_NAME}/${BUCKET_FOLDER}
