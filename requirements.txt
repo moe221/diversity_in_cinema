@@ -22,6 +22,11 @@ google-cloud-storage
 mlflow
 s3fs
 
+#ML datasets
+
+datasets
+
+
 # utilities
 six>=1.14
 joblib
