@@ -72,3 +72,15 @@ mkdir tmp
 cd tmp
 diversity_in_cinema-run
 ```
+
+# How to contribute
+- Always create a separate branch for new features 
+
+    ```bash
+    git branch [FEATURE_NAME]
+    git checkout [FEATURE_NAME]
+    ```
+- Update the requirements.txt every time you use a new library
+- Add and commit changes as soon as you mak them
+- Create pull requests before merging your branch
+- Comment your code and add function docstrings 
