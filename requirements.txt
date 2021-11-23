@@ -11,6 +11,7 @@ scikit-learn
 
 # deep learning
 mtcnn
+tensorflow<2.6
 
 # tests/linter
 black
