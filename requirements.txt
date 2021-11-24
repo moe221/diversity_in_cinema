@@ -36,4 +36,4 @@ termcolor
 requests
 httplib2
 bs4
-PIL
+Pillow
