@@ -27,7 +27,6 @@ def get_images(title, frame_interval=2):
         img_lst.append(image)
         frame_lst.append(i)
         title_lst.append(title)
-        print(i)
         i = i + frame_interval
 
 
