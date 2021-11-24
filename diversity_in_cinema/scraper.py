@@ -22,7 +22,7 @@ def get_movies():
 
 
 def grab_frame_url(title):
-    '''Retrieves the URL of the first frame JPG of a given movie'''
+    '''Grabs the URL of the first frame JPG of a given movie for use in retrieving all images'''
     movies = get_movies()
     url = movies[title]
     http = httplib2.Http()
