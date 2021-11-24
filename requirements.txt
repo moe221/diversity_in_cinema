@@ -27,7 +27,6 @@ mlflow
 s3fs
 
 #ML datasets
-
 datasets
 
 
@@ -36,3 +35,9 @@ six>=1.14
 joblib
 memoized-property
 termcolor
+
+# scraping
+requests
+httplib2
+bs4
+PIL
