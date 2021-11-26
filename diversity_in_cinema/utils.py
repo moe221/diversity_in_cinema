@@ -35,6 +35,6 @@ def extract_face_mtcnn(image):
 
                 face_list.append(out)
 
-    print(f"{len(face_list)} faces detected.")
+        print(f"{len(face_list)} faces detected.")
 
     return face_list
