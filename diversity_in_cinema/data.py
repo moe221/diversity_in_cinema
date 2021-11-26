@@ -42,7 +42,7 @@ def main():
     for movie in tqdm(movie_list):
 
         print(f"extracting frames from {movie}...")
-        df_movie_frames= download_all_frames(movie, frame_interval=1000)
+        df_movie_frames= download_all_frames(movie, frame_interval=500)
 
         face_dict = {}
 
