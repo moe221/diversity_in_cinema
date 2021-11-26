@@ -37,3 +37,10 @@ requests
 httplib2
 bs4
 Pillow
+
+# face detection
+facenet-pytorch
+
+
+# deepl learning
+deepface
