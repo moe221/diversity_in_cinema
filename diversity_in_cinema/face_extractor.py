@@ -18,7 +18,7 @@ def extract_face_mtcnn(image):
 
     img = Image.fromarray(image)
 
-    boxes, probs= mtcnn.detect(img)
+    boxes, probs, _ = mtcnn.detect(img, landmarks=True)
 
     if boxes is not None:
         for box, prob in zip(boxes, probs):
@@ -30,6 +30,5 @@ def extract_face_mtcnn(image):
                 face = extract_face(img, box)
                 face_list.append(face)
 
-    print(f"{len(face_list)} faces detected.")
 
     return face_list
