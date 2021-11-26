@@ -2,9 +2,17 @@
 .coverage
 .ipynb_checkpoints
 .DS_Store
+.vscode/
 raw_data/
+
 *.csv
+*.png
+*.jpg
+*.gz
+
 **/__pycache__/
 .env
 
 .python-version
+
+/pre-trained_models
