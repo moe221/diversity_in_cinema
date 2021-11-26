@@ -80,7 +80,11 @@ create_bucket:
 
 # path to the file to upload to GCP (the path to the file should be absolute or should match the directory where the make command is ran)
 # replace with your local path to the `train_1k.csv` and make sure to put the path between quotes
+<<<<<<< HEAD
 LOCAL_PATH="/Users/Moe/code/moe221/final_project/diversity_in_cinema/raw_data/fairface/fairface_array"
+=======
+LOCAL_PATH="./raw_data/fairface"
+>>>>>>> 540b97c6ce80abfbc1f54900cf6f5a90dfea952a
 
 # bucket directory in which to store the uploaded file (`data` is an arbitrary name that we choose to use)
 BUCKET_FOLDER=data/training_data
