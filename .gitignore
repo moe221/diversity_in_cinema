@@ -6,6 +6,9 @@
 raw_data/
 
 *.csv
+*.png
+*.jpg
+*.gz
 
 **/__pycache__/
 .env
