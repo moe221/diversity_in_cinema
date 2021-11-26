@@ -11,6 +11,7 @@ from google.cloud import storage
 
 from utils import extract_face_mtcnn
 from scraper import get_movies, download_all_frames
+from cnn_model import predict_face
 from params import *
 
 def upload_file_to_gcp(file, movie_name):
@@ -34,6 +35,45 @@ def upload_image_to_gcp(image, movie_name, image_name):
     blob.upload_from_string(b.getvalue(), content_type="image/jpeg")
 
 
+def classify_faces(dataframe):
+
+    """
+    A function which takes in a dataframe of frame number and the
+    extracted face images in each frame as an array
+
+    """
+
+    df_list = []
+    i = 0
+    for frame, faces in zip(dataframe["frame"], tqdm(dataframe["faces"])):
+
+        frame_list = []
+        gender_list = []
+        race_list = []
+        face_id_list = []
+
+        results = predict_face(faces)
+
+        for faces in results.values():
+            gender = faces["gender"]
+            race = faces["dominant_race"]
+
+            frame_list.append(frame)
+            gender_list.append(gender)
+            race_list.append(race)
+
+            face_id_list.append(i)
+
+            i += 1
+
+        df = pd.DataFrame(data={"frame_number":frame_list,
+                                "face_id":face_id_list,
+                                "gender":gender_list,
+                                "race":race_list})
+        df_list.append(df)
+
+    return pd.concat(df_list)
+
 
 def main():
     # generate list of all movies
@@ -53,24 +93,23 @@ def main():
 
             print("uploading face images to GCP")
             for i, face in enumerate(faces_list):
-                out = np.array(face.permute(1, 2, 0))
-                out = out.astype('uint8')
-                image = Image.fromarray(out)
+                image = Image.fromarray(face)
 
                 image_name = f"{frame_id}_face{i}.jpg"
                 upload_image_to_gcp(image, movie, image_name)
 
 
         # save as dataframe
-        # faces_df = pd.DataFrame(data={"frame": list(face_dict.keys()),
-        #                             "faces": list(face_dict.values())})
+        faces_df = pd.DataFrame(data={"frame": list(face_dict.keys()),
+                                      "faces": list(face_dict.values())})
+
+        print("classifying faces")
+        df_analyzed = classify_faces(faces_df)
+
+        print("uploading results to GCP")
+        upload_file_to_gcp(df_analyzed, movie)
 
 
-
-
-
-    #TODO classify faces
-    #TODO ulpoad classification to gcp
 
 if __name__ == "__main__":
     main()
