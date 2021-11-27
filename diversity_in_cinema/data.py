@@ -76,6 +76,13 @@ def classify_faces(dataframe):
 
 
 def main():
+
+    """
+    Function that conducts the following steps:
+    1. Get a list of all movie title hosted on movie-screencaps.com
+
+    """
+
     # generate list of all movies
     movie_list = list(get_movies().keys())[:10]
 
