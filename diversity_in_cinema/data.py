@@ -42,6 +42,8 @@ def classify_faces(dataframe):
     extracted face images in each frame as an array
 
     """
+    if dataframe.empty:
+        return None
 
     df_list = []
     i = 0
@@ -84,12 +86,14 @@ def main():
     """
 
     # generate list of all movies
-    movie_list = list(get_movies().keys())[:10]
+    movie_list = list(get_movies().keys())[35:40]
 
     for movie in tqdm(movie_list):
 
         print(f"extracting frames from {movie}...")
-        df_movie_frames= download_all_frames(movie, frame_interval=500)
+        df_movie_frames= download_all_frames(movie, frame_interval=3)
+
+        num_of_frames = len(df_movie_frames)
 
         face_dict = {}
 
@@ -113,8 +117,11 @@ def main():
         print("classifying faces")
         df_analyzed = classify_faces(faces_df)
 
+        if df_analyzed is None:
+            continue
+
         print("uploading results to GCP")
-        upload_file_to_gcp(df_analyzed, movie)
+        upload_file_to_gcp(df_analyzed, f"{num_of_frames}_{movie}")
 
 
 

@@ -80,11 +80,7 @@ create_bucket:
 
 # path to the file to upload to GCP (the path to the file should be absolute or should match the directory where the make command is ran)
 # replace with your local path to the `train_1k.csv` and make sure to put the path between quotes
-<<<<<<< HEAD
-LOCAL_PATH="/Users/Moe/code/moe221/final_project/diversity_in_cinema/raw_data/fairface/fairface_array"
-=======
 LOCAL_PATH="./raw_data/fairface"
->>>>>>> 540b97c6ce80abfbc1f54900cf6f5a90dfea952a
 
 # bucket directory in which to store the uploaded file (`data` is an arbitrary name that we choose to use)
 BUCKET_FOLDER=data/training_data
@@ -92,3 +88,49 @@ BUCKET_FOLDER=data/training_data
 upload_data:
     # @gsutil cp train_1k.csv gs://wagon-ml-my-bucket-name/data/train_1k.csv
 	@gsutil -m cp -R ${LOCAL_PATH} gs://${BUCKET_NAME}/${BUCKET_FOLDER}
+
+
+##### Package params  - - - - - - - - - - - - - - - - - - -
+
+PACKAGE_NAME=diversity_in_cinema
+FILENAME_GENDER=trainer_gender
+FILENAME_RACE=trainer_race
+
+##### Job - - - - - - - - - - - - - - - - - - - - - - - - -
+
+JOB_NAME_1=diversity_in_cinema_training_pipeline_gender_$(shell date +'%Y%m%d_%H%M%S')
+JOB_NAME_2=diversity_in_cinema_training_pipeline_race_$(shell date +'%Y%m%d_%H%M%S')
+
+
+run_locally:
+	@python -m ${PACKAGE_NAME}.${FILENAME}
+
+
+# will store the packages uploaded to GCP for the training
+BUCKET_TRAINING_FOLDER = 'trainings'
+PYTHON_VERSION=3.7
+RUNTIME_VERSION=1.15
+
+gcp_submit_training_gender_model:
+	gcloud ai-platform jobs submit training ${JOB_NAME_1} \
+		--job-dir gs://${BUCKET_NAME}/${BUCKET_TRAINING_FOLDER} \
+		--package-path ${PACKAGE_NAME} \
+		--module-name ${PACKAGE_NAME}.${FILENAME_GENDER} \
+		--python-version=${PYTHON_VERSION} \
+		--runtime-version=${RUNTIME_VERSION} \
+		--region ${REGION} \
+		--scale-tier=CUSTOM \
+		--master-machine-type=n1-highmem-8 \
+		--stream-logs
+
+gcp_submit_training_race_model:
+	gcloud ai-platform jobs submit training ${JOB_NAME_2} \
+		--job-dir gs://${BUCKET_NAME}/${BUCKET_TRAINING_FOLDER} \
+		--package-path ${PACKAGE_NAME} \
+		--module-name ${PACKAGE_NAME}.${FILENAME_RACE} \
+		--python-version=${PYTHON_VERSION} \
+		--runtime-version=${RUNTIME_VERSION} \
+		--region ${REGION} \
+		--scale-tier=CUSTOM \
+		--master-machine-type=n1-highmem-8 \
+		--stream-logs

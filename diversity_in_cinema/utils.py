@@ -1,5 +1,10 @@
 from facenet_pytorch import MTCNN, extract_face
 from PIL import Image
+
+from tensorflow import keras
+from tensorflow.python.lib.io import file_io
+import os
+
 import numpy as np
 
 
@@ -11,8 +16,9 @@ def extract_face_mtcnn(image):
     """
 
     mtcnn = MTCNN(keep_all=True,
-                      min_face_size=35,
-                      post_process=False)
+                      min_face_size=30,
+                      post_process=False,
+                      image_size=224)
     face_list = []
 
     print("Extracting faces...")
@@ -26,7 +32,7 @@ def extract_face_mtcnn(image):
 
             # return only faces detcted with 99% or higher
             # certanty
-            if prob >= 0.99:
+            if prob >= 0.97:
 
                 face = extract_face(img, box)
 
@@ -38,3 +44,41 @@ def extract_face_mtcnn(image):
     print(f"{len(face_list)} faces detected.")
 
     return face_list
+
+
+class ModelCheckpointInGcs(keras.callbacks.ModelCheckpoint):
+    def __init__(
+        self,
+        filepath,
+        gcs_dir: str,
+        monitor="val_loss",
+        verbose=0,
+        save_best_only=False,
+        save_weights_only=False,
+        mode="auto",
+        save_freq="epoch",
+        options=None,
+        **kwargs,
+    ):
+        super().__init__(
+            filepath,
+            monitor=monitor,
+            verbose=verbose,
+            save_best_only=save_best_only,
+            save_weights_only=save_weights_only,
+            mode=mode,
+            save_freq=save_freq,
+            options=options,
+            **kwargs,
+        )
+        self._gcs_dir = gcs_dir
+
+    def _save_model(self, epoch, logs):
+        super()._save_model(epoch, logs)
+        filepath = self._get_file_path(epoch, logs)
+        if os.path.isfile(filepath):
+            with file_io.FileIO(filepath, mode="rb") as inp:
+                with file_io.FileIO(
+                    os.path.join(self._gcs_dir, filepath), mode="wb+"
+                ) as out:
+                    out.write(inp.read())

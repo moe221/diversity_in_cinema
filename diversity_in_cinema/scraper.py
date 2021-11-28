@@ -55,7 +55,7 @@ def frame_urls(title, frame_interval=2):
 
     first_frame_url = grab_frame_url(title)
     split_url = first_frame_url.split("com-")[0]
-    frame_urls = [f"{split_url}com-{i}.jpg" for i in range(1, 15_000, frame_interval)]
+    frame_urls = [f"{split_url}com-{i}.jpg" for i in range(1, 20_000, frame_interval)]
     return frame_urls
 
 
@@ -64,28 +64,28 @@ def download_one_frame(url):
 
     frame_number = url.split(".com-")[1].replace(".jpg", "")
 
-    max_retry = 10
+    max_retry = 50
     i = 0
     while True:
         try:
-            response = requests.get(url, stream=True)
+            time.sleep(10)
+            response = requests.get(url.strip(), stream=True)
             break
         except:
             if i == max_retry:
                 return frame_number, "TimeoutError"
             else:
                 print(f"Cannot retrieve frame number {frame_number}. Trying again in 5 seconds")
-                time.sleep(5)
+                time.sleep(7)
                 i += 1
 
     if response.status_code != 200:
-        return None, None
+        print(f"{url} - No found")
+        return None, response.status_code
 
     else:
-        image = Image.open(response.raw).quantize(colors=100, method=2)
+        image = Image.open(response.raw).quantize(colors=200, method=2)
         image = np.array(image.convert('RGB'))
-
-        print(frame_number)
 
         return frame_number, image
 
@@ -96,15 +96,20 @@ def download_all_frames(title, frame_interval=2):
     frame_list = []
     frame_id_list = []
 
-    with ThreadPoolExecutor(max_workers=50) as executor:
+    with ThreadPoolExecutor(max_workers=5) as executor:
 
 
         for frame_id, frame in  executor.map(download_one_frame,
                                         urls,
-                                        timeout=1000):
+                                        timeout=None):
 
-            frame_id_list.append(frame_id)
-            frame_list.append(frame)
+            if frame_id is None:
+                continue
+
+            else:
+                frame_id_list.append(frame_id)
+                frame_list.append(frame)
+                print(f"Added frame number {frame_id}")
 
         print("Exporting to pandas DataFrame...")
 
