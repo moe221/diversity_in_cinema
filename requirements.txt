@@ -9,10 +9,6 @@ numpy
 pandas
 scikit-learn
 
-# deep learning
-mtcnn
-tensorflow<2.6
-
 # tests/linter
 black
 coverage
@@ -41,3 +37,11 @@ requests
 httplib2
 bs4
 Pillow
+
+# face detection
+facenet-pytorch
+
+
+# deepl learning
+deepface
+tensorflow==2.5.2
