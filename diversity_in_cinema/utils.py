@@ -21,8 +21,6 @@ def extract_face_mtcnn(image):
                       image_size=224)
     face_list = []
 
-    print("Extracting faces...")
-
     img = Image.fromarray(image)
 
     boxes, probs= mtcnn.detect(img)
@@ -40,8 +38,6 @@ def extract_face_mtcnn(image):
                 out = out.astype('uint8')
 
                 face_list.append(out)
-
-    print(f"{len(face_list)} faces detected.")
 
     return face_list
 

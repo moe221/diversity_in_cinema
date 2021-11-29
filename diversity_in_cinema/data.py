@@ -1,5 +1,8 @@
 import pandas as pd
 from tqdm import tqdm
+from concurrent.futures import ThreadPoolExecutor, as_completed
+import datetime as datetime
+
 
 import numpy as np
 from PIL import Image
@@ -10,7 +13,7 @@ sys.path.insert(0,'..')
 from google.cloud import storage
 
 from utils import extract_face_mtcnn
-from scraper import get_movies, download_all_frames
+from diversity_in_cinema.scraper import get_movies, download_one_frame_selenium, frame_urls, download_one_frame_bs
 from cnn_model import predict_face
 from params import *
 
@@ -19,7 +22,7 @@ def upload_file_to_gcp(file, movie_name):
     client = storage.Client()
     bucket = client.get_bucket(BUCKET_NAME)
 
-    bucket.blob(f'output/{movie_name}').upload_from_string(file.to_csv(),
+    bucket.blob(f'output/{movie_name}.csv').upload_from_string(file.to_csv(),
                                                            'text/csv')
 
     print(f"Uploaded {movie_name} data to: {BUCKET_NAME}/output/{movie_name}")
@@ -77,6 +80,46 @@ def classify_faces(dataframe):
     return pd.concat(df_list)
 
 
+def download_all_frames(title, frame_interval):
+
+    urls = frame_urls(title, frame_interval)
+
+    with ThreadPoolExecutor(max_workers=20) as executor:
+
+        face_dict = {}
+        frame_count = 0
+        for frame_id, frame in executor.map(download_one_frame_bs,
+                                        urls,
+                                        timeout=None):
+
+            frame_count += 1
+            if frame_id is None:
+                continue
+
+            else:
+                print(f"Grabbing frame number {frame_id}\n")
+                faces_list = extract_face_mtcnn(frame)
+                face_dict[frame_id] = faces_list
+
+                if len(faces_list) > 0:
+                    print(f"{len(faces_list)} faces detected.")
+                    print("uploading face images to GCP\n")
+                    for i, face in tqdm(enumerate(faces_list)):
+                        image = Image.fromarray(face)
+
+                        image_name = f"{frame_id}_face{i}.jpg"
+                        upload_image_to_gcp(image, title, image_name)
+                else:
+                    print(f"No faces detected in frame number {frame_id}\n")
+
+            print(f"{frame_count} / {len(urls)} frames scraped!\n")
+
+        faces_df = pd.DataFrame(data={"frame": list(face_dict.keys()),
+                                "faces": list(face_dict.values())})
+
+        return faces_df
+
+
 def main():
 
     """
@@ -90,29 +133,10 @@ def main():
 
     for movie in tqdm(movie_list):
 
-        print(f"extracting frames from {movie}...")
-        df_movie_frames= download_all_frames(movie, frame_interval=3)
 
-        num_of_frames = len(df_movie_frames)
+        print(f"[{datetime.datetime.now()}] - Scarping {movie}...\n")
 
-        face_dict = {}
-
-        print("extracting faces...")
-        for frame, frame_id in zip(df_movie_frames["Image"], tqdm(df_movie_frames["Frame_Id"])):
-            faces_list = extract_face_mtcnn(frame)
-            face_dict[frame_id] = faces_list
-
-            print("uploading face images to GCP")
-            for i, face in enumerate(faces_list):
-                image = Image.fromarray(face)
-
-                image_name = f"{frame_id}_face{i}.jpg"
-                upload_image_to_gcp(image, movie, image_name)
-
-
-        # save as dataframe
-        faces_df = pd.DataFrame(data={"frame": list(face_dict.keys()),
-                                      "faces": list(face_dict.values())})
+        faces_df = download_all_frames(movie, frame_interval=3)
 
         print("classifying faces")
         df_analyzed = classify_faces(faces_df)
@@ -120,8 +144,11 @@ def main():
         if df_analyzed is None:
             continue
 
-        print("uploading results to GCP")
-        upload_file_to_gcp(df_analyzed, f"{num_of_frames}_{movie}")
+        # luis function faces_df
+        # two dataframe -> google bucket
+
+        print(f"[{datetime.datetime.now()}] - uploading results to GCP")
+        upload_file_to_gcp(df_analyzed, f"{movie}")
 
 
 
