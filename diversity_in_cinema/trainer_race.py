@@ -26,7 +26,7 @@ MODEL_NAME = 'race'
 MODEL_VERSION = 'v1'
 
 # trained model storage location on GCP
-STORAGE_LOCATION = 'models/race_model.joblib'
+STORAGE_LOCATION = 'models/race_model_v2.joblib'
 
 
 def load_model_from_gcp():
@@ -74,8 +74,12 @@ def build_model_race(model):
     model_new.add(model)
 
     model_new.add(layers.Flatten())
-    model_new.add(layers.Dense(500 , activation='relu'))
+    model_new.add(layers.Dense(1024 , activation='relu'))
+    model_new.add(layers.Dropout((0.5)))
+    model_new.add(layers.Dense(1000 , activation='relu'))
+    model_new.add(layers.Dropout((0.5)))
     model_new.add(layers.Dense(6, activation='softmax'))
+
 
     return model_new
 
@@ -221,19 +225,19 @@ def save_model(model):
 
     # saving the trained model to disk is mandatory to then beeing able to upload it to storage
     # Implement here
-    model.save('race_model.h5')
-    print("saved race_model.h5 locally")
+    model.save('race_model_v2.h5')
+    print("saved race_model_v2.h5 locally")
 
     # Implement here
     upload_model_to_gcp()
-    print(f"uploaded race_model.h5' to gcp cloud storage under \n => {STORAGE_LOCATION}")
+    print(f"uploaded race_model_v2.h5' to gcp cloud storage under \n => {STORAGE_LOCATION}")
 
 
 
 if __name__ == '__main__':
     # get training data from GCP bucket
     print("loading data")
-    X_train, y_train= load_training_data(nrows=30_000)
+    X_train, y_train= load_training_data(nrows=2000)
 
     # train model (locally if this file was called through the run_locally command
     # or on GCP if it was called through the gcp_submit_training, in which case

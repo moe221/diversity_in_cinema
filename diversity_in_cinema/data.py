@@ -1,31 +1,28 @@
 import pandas as pd
 from tqdm import tqdm
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import ThreadPoolExecutor
 import datetime as datetime
+from random import shuffle
 
-
-import numpy as np
 from PIL import Image
 import io
-import sys
-sys.path.insert(0,'..')
 
 from google.cloud import storage
 
-from utils import extract_face_mtcnn
+from diversity_in_cinema.utils import extract_face_mtcnn
 from diversity_in_cinema.scraper import get_movies, download_one_frame_selenium, frame_urls, download_one_frame_bs
-from cnn_model import predict_face
-from params import *
+from diversity_in_cinema.cnn_model import predict_face
+from diversity_in_cinema.params import *
 
-def upload_file_to_gcp(file, movie_name):
+def upload_file_to_gcp(file, sub_directory,file_name):
 
     client = storage.Client()
     bucket = client.get_bucket(BUCKET_NAME)
 
-    bucket.blob(f'output/{movie_name}.csv').upload_from_string(file.to_csv(),
+    bucket.blob(f'{sub_directory}/{file_name}').upload_from_string(file.to_csv(),
                                                            'text/csv')
 
-    print(f"Uploaded {movie_name} data to: {BUCKET_NAME}/output/{movie_name}")
+    print(f"Uploaded {file_name} data to: {BUCKET_NAME}/{sub_directory}/{file_name}")
 
 def upload_image_to_gcp(image, movie_name, image_name):
 
@@ -45,6 +42,7 @@ def classify_faces(dataframe):
     extracted face images in each frame as an array
 
     """
+
     if dataframe.empty:
         return None
 
@@ -80,11 +78,11 @@ def classify_faces(dataframe):
     return pd.concat(df_list)
 
 
-def download_all_frames(title, frame_interval):
+def download_all_frames(title, frame_interval, workers):
 
     urls = frame_urls(title, frame_interval)
 
-    with ThreadPoolExecutor(max_workers=20) as executor:
+    with ThreadPoolExecutor(max_workers=workers) as executor:
 
         face_dict = {}
         frame_count = 0
@@ -102,8 +100,10 @@ def download_all_frames(title, frame_interval):
                 face_dict[frame_id] = faces_list
 
                 if len(faces_list) > 0:
+
                     print(f"{len(faces_list)} faces detected.")
                     print("uploading face images to GCP\n")
+
                     for i, face in tqdm(enumerate(faces_list)):
                         image = Image.fromarray(face)
 
@@ -117,10 +117,35 @@ def download_all_frames(title, frame_interval):
         faces_df = pd.DataFrame(data={"frame": list(face_dict.keys()),
                                 "faces": list(face_dict.values())})
 
-        return faces_df
+        return faces_df, len(urls)
 
 
-def main():
+
+def add_to_overview(extracted_frames, total_frames, face_count, movie_name):
+
+    """
+    Function to create, update and upload a summary dataframe of all analyzed
+    movies
+    """
+
+    data = {"tile": [movie_name],
+            "number_of_frames": [total_frames],
+            "extracted_frames":[extracted_frames],
+            "detected_faces": [face_count]}
+
+    df = pd.DataFrame(data)
+
+    try:
+        # load image labels
+        df_summary = pd.read_csv(f"gs://{BUCKET_NAME}/output/summary.csv", index_col=None)
+        df_updated = pd.concat([df_summary, df], axis=0)
+        upload_file_to_gcp(df_updated, "output", "summary.csv")
+
+    except FileNotFoundError:
+        upload_file_to_gcp(df, "output", "summary.csv")
+
+
+def main(movie_list, frame_interval, workers):
 
     """
     Function that conducts the following steps:
@@ -128,15 +153,12 @@ def main():
 
     """
 
-    # generate list of all movies
-    movie_list = list(get_movies().keys())
-
     for movie in tqdm(movie_list):
 
 
         print(f"[{datetime.datetime.now()}] - Scarping {movie}...\n")
 
-        faces_df = download_all_frames(movie, frame_interval=3)
+        faces_df, total_frames = download_all_frames(movie, frame_interval, workers)
 
         print("classifying faces")
         df_analyzed = classify_faces(faces_df)
@@ -148,9 +170,22 @@ def main():
         # two dataframe -> google bucket
 
         print(f"[{datetime.datetime.now()}] - uploading results to GCP")
-        upload_file_to_gcp(df_analyzed, f"{movie}")
+        upload_file_to_gcp(df_analyzed, "output", f"{movie}.csv")
+
+        # update overview file
+        face_count = len(df_analyzed)
+        extracted_frames = len(faces_df)
+
+        add_to_overview(extracted_frames, total_frames, face_count, movie)
 
 
 
 if __name__ == "__main__":
-    main()
+
+    # generate list of all movies
+    movie_list = pd.read_csv(
+        "diversity_in_cinema/data/shuffeld_movie_list.csv", index_col=None)["movies"].values
+
+    main(movie_list[550: 733], frame_interval=3, workers= 100)
+
+    # next [550: 733]

@@ -105,7 +105,7 @@ def download_one_frame_bs(url):
     i = 0
     while True:
         try:
-            time.sleep(np.random.randint(5, 10))
+            time.sleep(np.random.randint(5, 15))
             headers = {'Accept': 'text/html'}
             response = requests.get(url.strip(), stream=True, headers=headers)
             break
@@ -145,7 +145,7 @@ def download_one_frame_selenium(url):
     else:
         img = driver.get_screenshot_as_png()
         driver.close()
-        img = Image.open(BytesIO(img)).quantize(colors=200, method=2)
+        img = Image.open(BytesIO(img)).quantize(colors=250, method=2)
         img = np.array(img.convert('RGB'))
 
         return frame_number, img
