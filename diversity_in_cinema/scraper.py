@@ -1,8 +1,12 @@
 import numpy as np
 import pandas as pd
-from PIL import Image
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from fake_useragent import UserAgent
+
+from selenium import webdriver
+from PIL import Image
+from io import BytesIO
 
 import requests
 
@@ -62,14 +66,27 @@ def frame_urls(title, frame_interval=2):
 def download_one_frame(url):
     "Function which returns an image array of a frame url"
 
+    ua = UserAgent()
+
+
+    headers = {
+            "User-Agent": str(ua.chrome),
+            "Accept": "accept: image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8",
+            "Accept-Encoding": "gzip, deflate, br",
+            "Accept-Language": "en-GB,en-US;q=0.9,en;q=0.8",
+            "Referer": "//movie-screencaps.com/",
+            # ... other headers ...
+    }
+
     frame_number = url.split(".com-")[1].replace(".jpg", "")
 
     max_retry = 50
     i = 0
     while True:
         try:
-            time.sleep(10)
-            response = requests.get(url.strip(), stream=True)
+            time.sleep(5)
+            headers = {'Accept': 'text/html'}
+            response = requests.get(url.strip(), stream=True, headers=headers)
             break
         except:
             if i == max_retry:
@@ -96,10 +113,10 @@ def download_all_frames(title, frame_interval=2):
     frame_list = []
     frame_id_list = []
 
-    with ThreadPoolExecutor(max_workers=5) as executor:
+    with ThreadPoolExecutor(max_workers=50) as executor:
 
 
-        for frame_id, frame in  executor.map(download_one_frame,
+        for frame_id, frame in  executor.map(download_one_frame_selenium,
                                         urls,
                                         timeout=None):
 
@@ -116,6 +133,28 @@ def download_all_frames(title, frame_interval=2):
         df = pd.DataFrame(data={'Frame_Id':frame_id_list, 'Image':frame_list})
         df["Title"] = [title] * len(df)
         return df.dropna()
+
+
+def download_one_frame_selenium(url):
+
+    frame_number = url.split(".com-")[1].replace(".jpg", "")
+
+    driver = webdriver.Chrome(r'/Users/Moe/local/bin/chromedriver')
+    driver.get(url)
+
+    if len(driver.get_log('browser')) > 0:
+        driver.close()
+        print(f"{url} - No found")
+        return None, response.status_code
+
+    else:
+        img = driver.get_screenshot_as_png()
+        driver.close()
+        img = Image.open(BytesIO(img)).quantize(colors=200, method=2)
+        img = np.array(img.convert('RGB'))
+
+        return frame_number, img
+
 
 
 

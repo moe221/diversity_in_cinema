@@ -86,7 +86,7 @@ def main():
     """
 
     # generate list of all movies
-    movie_list = list(get_movies().keys())[35:40]
+    movie_list = list(get_movies().keys())
 
     for movie in tqdm(movie_list):
 
