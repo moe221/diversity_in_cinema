@@ -37,6 +37,9 @@ requests
 httplib2
 bs4
 Pillow
+fake-useragent
+selenium
+
 
 # face detection
 facenet-pytorch
@@ -44,3 +47,4 @@ facenet-pytorch
 
 # deepl learning
 deepface
+tensorflow==2.5.2

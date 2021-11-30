@@ -1,38 +1,16 @@
 import pandas as pd
 from tqdm import tqdm
-
-import numpy as np
-from PIL import Image
-import io
-import sys
-sys.path.insert(0,'..')
+import datetime as datetime
 
 from google.cloud import storage
 
-from utils import extract_face_mtcnn
-from scraper import get_movies, download_all_frames
-from cnn_model import predict_face
-from params import *
+from diversity_in_cinema.params import *
+from diversity_in_cinema.scraper import get_movies
+from diversity_in_cinema.scraper import face_scraper
+from diversity_in_cinema.cnn_model import predict_face
+from diversity_in_cinema.utils import upload_file_to_gcp
+from diversity_in_cinema.utils import remove_duplicate_4k_titles
 
-def upload_file_to_gcp(file, movie_name):
-
-    client = storage.Client()
-    bucket = client.get_bucket(BUCKET_NAME)
-
-    bucket.blob(f'output/{movie_name}').upload_from_string(file.to_csv(),
-                                                           'text/csv')
-
-    print(f"Uploaded {movie_name} data to: {BUCKET_NAME}/output/{movie_name}")
-
-def upload_image_to_gcp(image, movie_name, image_name):
-
-    client = storage.Client()
-    bucket = client.get_bucket(BUCKET_NAME)
-    blob = bucket.blob(f"face_images/{movie_name}/{image_name}")
-    b = io.BytesIO()
-    image.save(b, "jpeg")
-    image.close()
-    blob.upload_from_string(b.getvalue(), content_type="image/jpeg")
 
 
 def classify_faces(dataframe):
@@ -42,6 +20,9 @@ def classify_faces(dataframe):
     extracted face images in each frame as an array
 
     """
+
+    if dataframe.empty:
+        return None
 
     df_list = []
     i = 0
@@ -75,41 +56,98 @@ def classify_faces(dataframe):
     return pd.concat(df_list)
 
 
-def main():
-    # generate list of all movies
-    movie_list = list(get_movies().keys())[:10]
+def add_to_overview(extracted_frames, total_frames, face_count, movie_name):
+
+    """
+    Function to create, update and upload a summary dataframe of all analyzed
+    movies
+
+    """
+
+    data = {"title": [movie_name],
+            "number_of_frames": [total_frames],
+            "extracted_frames":[extracted_frames],
+            "detected_faces": [face_count]}
+
+    df = pd.DataFrame(data)
+
+    try:
+        # load image labels
+        df_summary = pd.read_csv(f"gs://{BUCKET_NAME}/output/summary.csv",
+                                 index_col=None)
+
+        df_updated = pd.concat([df_summary, df], axis=0)
+
+        upload_file_to_gcp(df_updated, BUCKET_NAME, "output/summary.csv")
+
+    except FileNotFoundError:
+        upload_file_to_gcp(df, BUCKET_NAME, "output/summary.csv")
+
+
+def main(movie_list, frame_interval, workers):
+
+    """
+    Function that conducts the following steps:
+    1. Get a list of all movie title hosted on movie-screencaps.com
+
+    """
 
     for movie in tqdm(movie_list):
 
-        print(f"extracting frames from {movie}...")
-        df_movie_frames= download_all_frames(movie, frame_interval=500)
+        # check if movie was already processed:
+        client = storage.Client()
+        processed_movies = [str(x).split(",")[1].\
+            replace(".csv", "").\
+                replace("output/", "").\
+                    strip() for x in client.\
+                        list_blobs(BUCKET_NAME, prefix='output')]
 
-        face_dict = {}
-
-        print("extracting faces...")
-        for frame, frame_id in zip(df_movie_frames["Image"], tqdm(df_movie_frames["Frame_Id"])):
-            faces_list = extract_face_mtcnn(frame)
-            face_dict[frame_id] = faces_list
-
-            print("uploading face images to GCP")
-            for i, face in enumerate(faces_list):
-                image = Image.fromarray(face)
-
-                image_name = f"{frame_id}_face{i}.jpg"
-                upload_image_to_gcp(image, movie, image_name)
+        if movie.strip() in processed_movies:
+            continue
 
 
-        # save as dataframe
-        faces_df = pd.DataFrame(data={"frame": list(face_dict.keys()),
-                                      "faces": list(face_dict.values())})
+        print(f"[{datetime.datetime.now()}] - Scarping {movie}...\n")
+        try:
+            faces_df, total_frames = face_scraper(movie,
+                                                  frame_interval,
+                                                  workers)
+        except:
+            continue
 
         print("classifying faces")
         df_analyzed = classify_faces(faces_df)
 
-        print("uploading results to GCP")
-        upload_file_to_gcp(df_analyzed, movie)
+        if df_analyzed is None:
+            continue
+
+
+        print(f"[{datetime.datetime.now()}] - uploading results to GCP")
+        upload_file_to_gcp(df_analyzed, BUCKET_NAME, f"output/{movie}.csv")
+
+        # update overview file
+        face_count = len(df_analyzed)
+        extracted_frames = len(faces_df)
+
+        add_to_overview(extracted_frames, total_frames, face_count, movie)
 
 
 
 if __name__ == "__main__":
-    main()
+
+    # scrape all movies on movie-screencaps.com
+    # movie_list = get_movies()
+    # movie_list = remove_duplicate_4k_titles()
+
+
+    # testing
+
+    movie_list_df = pd.read_csv(
+        f"gs://{BUCKET_NAME}/data/shuffled_movie_list.csv", index_col=None)
+
+    movie_list = movie_list_df["movies"].values
+    main(movie_list[366: 550], frame_interval=3, workers=50)
+
+
+    # next [184: 366]
+    # next [366: 550]
+    # next [550: 733]

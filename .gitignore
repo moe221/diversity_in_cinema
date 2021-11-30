@@ -4,6 +4,8 @@
 .DS_Store
 .vscode/
 raw_data/
+notebooks/
+
 
 *.csv
 *.png
@@ -12,7 +14,6 @@ raw_data/
 
 **/__pycache__/
 .env
-
+*.h5
 .python-version
-
-/pre-trained_models
+pre-trained_models/
