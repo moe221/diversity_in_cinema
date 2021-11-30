@@ -5,7 +5,6 @@ from google.cloud import storage
 from tensorflow.keras.models import load_model
 
 
-
 def predict_face(face_list):
     #facial analysis
     return DeepFace.analyze(img_path = face_list,
@@ -14,7 +13,6 @@ def predict_face(face_list):
                      enforce_detection=False)
 
 def predict_face_custome(face_list):
-
 
     # pre process and transform to shape (n, 224, 224, 3)
     # X = np.stack(face_list, axis=0)

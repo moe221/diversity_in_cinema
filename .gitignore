@@ -16,9 +16,4 @@ notebooks/
 .env
 *.h5
 .python-version
-<<<<<<< HEAD
 pre-trained_models/
-=======
-
-/pre-trained_models
->>>>>>> 540b97c6ce80abfbc1f54900cf6f5a90dfea952a
