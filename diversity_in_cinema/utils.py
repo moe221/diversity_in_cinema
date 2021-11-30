@@ -1,6 +1,8 @@
 from facenet_pytorch import MTCNN, extract_face
 from PIL import Image
 import numpy as np
+import pandas as pd
+from sklearn.preprocessing import OneHotEncoder
 
 
 def extract_face_mtcnn(image):
@@ -38,3 +40,21 @@ def extract_face_mtcnn(image):
         print(f"{len(face_list)} faces detected.")
 
     return face_list
+
+#create 3 functions: 1 preproc, 2 baseline stat data, 3 final stats df
+
+def output_preproc(df):
+    ohe = OneHotEncoder(sparse=False)
+
+    ohe.fit(df[['gender']])
+    gender_encoded = ohe.transform(df[['gender']])
+
+    pass
+
+
+def baseline_stats(df):
+    pass
+
+
+def final_stats(df):
+    pass
