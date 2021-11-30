@@ -5,16 +5,10 @@ from functools import reduce
 
 def movie_stats(df_movie):
     '''
-    input: pandas dataframe containing 5 columns with the following information of a movie: Unnamed: 0, frame_number, face_id, gender and race
+    input: pandas dataframe containing 4 columns with the following information of a movie: frame_number, face_id, gender, race
     output: 2 pandas dataframe with some statistics (data frame 1: gender statistics, data frame 2: race statistics)
 
      '''
-    # Import the movie´s data (csv-> pandas dataframe)
-    #df_movie = pd.read_csv(df_movie_location)
-
-    # clean up of unnecessary columns
-    df_movie = df_movie.drop(columns=['Unnamed: 0'])
-
     ###########################################################################
     #--------------------------------------------------------------------------
     # STATISTICS: number frames
