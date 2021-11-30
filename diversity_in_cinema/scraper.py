@@ -169,7 +169,11 @@ def download_one_frame_bs(url):
         return None, url
 
     else:
-        image = Image.open(response.raw).quantize(colors=200, method=2)
+
+        # resize and save screenshot
+        image = Image.open(response.raw).quantize(colors=250, method=2).\
+            resize((1900, 800), Image.ANTIALIAS)
+
         image = np.array(image.convert('RGB'))
 
         return frame_number, image
@@ -202,8 +206,10 @@ def download_one_frame_selenium(url):
         img = driver.get_screenshot_as_png()
         driver.close()
 
-        # save screenshot
-        img = Image.open(BytesIO(img)).quantize(colors=250, method=2)
+        # resize and save screenshot
+        img = Image.open(BytesIO(img)).quantize(colors=250, method=2).\
+            resize((1900, 800), Image.ANTIALIAS)
+
         img = np.array(img.convert('RGB'))
 
         return frame_number, img
@@ -268,6 +274,9 @@ if __name__ == "__main__":
     #                                       1000)
     # print(results)
 
-    movies = get_movies()
-    for movie in movies.keys():
-        grab_frame_url(movie)
+    # movies = get_movies()
+    # for movie in movies.keys():
+    #     grab_frame_url(movie)
+
+    download_one_frame_bs(
+        "https://i1.wp.com/caps.pictures/201/4k-ironman2/full/4k-ironman2-movie-screencaps.com-3.jpg")

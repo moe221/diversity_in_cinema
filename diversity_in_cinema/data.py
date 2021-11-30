@@ -145,7 +145,7 @@ if __name__ == "__main__":
         f"gs://{BUCKET_NAME}/data/shuffled_movie_list.csv", index_col=None)
 
     movie_list = movie_list_df["movies"].values
-    main(movie_list[366: 550], frame_interval=3, workers=50)
+    main(movie_list[: 184], frame_interval=3, workers=50)
 
 
     # next [184: 366]
