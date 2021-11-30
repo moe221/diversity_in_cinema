@@ -44,6 +44,7 @@ def grab_frame_url(title):
 
     movies = get_movies()
     url = movies[title]
+    print(url)
     http = httplib2.Http()
     _, response = http.request(url)
 
@@ -89,7 +90,6 @@ def download_one_frame_bs(url):
 
     ua = UserAgent()
 
-
     headers = {
             "User-Agent": str(ua.chrome),
             "Accept": "accept: image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8",
@@ -119,7 +119,7 @@ def download_one_frame_bs(url):
 
     if response.status_code != 200:
         print(f"{url} - Not found")
-        return None, response.status_code
+        return None, url
 
     else:
         image = Image.open(response.raw).quantize(colors=200, method=2)

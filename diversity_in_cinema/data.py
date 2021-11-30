@@ -2,7 +2,6 @@ import pandas as pd
 from tqdm import tqdm
 from concurrent.futures import ThreadPoolExecutor
 import datetime as datetime
-from random import shuffle
 
 from PIL import Image
 import io
@@ -19,7 +18,7 @@ def upload_file_to_gcp(file, sub_directory,file_name):
     client = storage.Client()
     bucket = client.get_bucket(BUCKET_NAME)
 
-    bucket.blob(f'{sub_directory}/{file_name}').upload_from_string(file.to_csv(),
+    bucket.blob(f'{sub_directory}/{file_name}').upload_from_string(file.to_csv(index=False),
                                                            'text/csv')
 
     print(f"Uploaded {file_name} data to: {BUCKET_NAME}/{sub_directory}/{file_name}")
@@ -82,6 +81,13 @@ def download_all_frames(title, frame_interval, workers):
 
     urls = frame_urls(title, frame_interval)
 
+    # grab less frames from 4k titles because of memory issues
+    if "[4K]" in title:
+        while len(urls) > 6500:
+
+            frame_interval += 1
+            urls = frame_urls(title, frame_interval)
+
     with ThreadPoolExecutor(max_workers=workers) as executor:
 
         face_dict = {}
@@ -128,7 +134,7 @@ def add_to_overview(extracted_frames, total_frames, face_count, movie_name):
     movies
     """
 
-    data = {"tile": [movie_name],
+    data = {"title": [movie_name],
             "number_of_frames": [total_frames],
             "extracted_frames":[extracted_frames],
             "detected_faces": [face_count]}
@@ -155,10 +161,19 @@ def main(movie_list, frame_interval, workers):
 
     for movie in tqdm(movie_list):
 
+        # check if movie was already processed:
+
+        client = storage.Client()
+        processed_movies = [str(x).split(",")[1].replace(".csv", "").replace("output/", "").strip() for x in client.list_blobs(BUCKET_NAME, prefix='output')]
+        if movie.strip() in processed_movies:
+            continue
+
 
         print(f"[{datetime.datetime.now()}] - Scarping {movie}...\n")
-
-        faces_df, total_frames = download_all_frames(movie, frame_interval, workers)
+        try:
+            faces_df, total_frames = download_all_frames(movie, frame_interval, workers)
+        except:
+            continue
 
         print("classifying faces")
         df_analyzed = classify_faces(faces_df)
@@ -182,10 +197,13 @@ def main(movie_list, frame_interval, workers):
 
 if __name__ == "__main__":
 
-    # generate list of all movies
-    movie_list = pd.read_csv(
-        "diversity_in_cinema/data/shuffeld_movie_list.csv", index_col=None)["movies"].values
+    movie_list_df = pd.read_csv(
+        f"gs://{BUCKET_NAME}/data/shuffled_movie_list.csv", index_col=None)
 
-    main(movie_list[550: 733], frame_interval=3, workers= 100)
+    movie_list = movie_list_df["movies"].values
+    main(movie_list[: 184], frame_interval=3, workers=50)
 
+
+    # next [184: 366]
+    # next [366: 550]
     # next [550: 733]
