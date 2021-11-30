@@ -12,6 +12,7 @@ def predict_face(face_list):
                      actions = ['gender', 'race'],
                      enforce_detection=False)
 
+
 def predict_face_custome(face_list):
 
     # pre process and transform to shape (n, 224, 224, 3)

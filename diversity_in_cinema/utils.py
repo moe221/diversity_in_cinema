@@ -10,7 +10,6 @@ import io
 from google.cloud import storage
 
 import numpy as np
-import pandas as pd
 
 
 def extract_face_mtcnn(image):
@@ -112,6 +111,7 @@ def remove_duplicate_4k_titles(title_list):
         if "[4K]" in title:
             if title.replace("[4K]","").strip() in title_list:
                 title_list.remove(title)
+
     return title_list
 
 
