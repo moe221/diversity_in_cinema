@@ -206,22 +206,36 @@ def baseline_stats(df):
     only_men = len(df_new[df_new['Woman'] == 0])
     only_women = len(df_new[df_new['Man'] == 0])
 
+
     dict_stats = {
         'total_frames': [len(df_new)],
         'total_seconds': [len(df_new) / 2],
         'total_faces': [df_new['face_count'].sum()],
         'total_men': [df_new['Man'].sum()],
         'total_women': [df_new['Woman'].sum()],
-        'total_asian': [df_new['asian'].sum()],
-        'total_black': [df_new['black'].sum()],
-        'total_indian': [df_new['indian'].sum()],
-        'total_latino_hispanic': [df_new['latino hispanic'].sum()],
-        'total_middle_eastern': [df_new['middle eastern'].sum()],
-        'total_white': [df_new['white'].sum()],
         'total_women_of_color': [df_new['women_of_color'].sum()],
         'only_men': only_men,
         'only_women': only_women
     }
+
+
+    for cat in ["Man",
+                "Woman",
+                "asian",
+                "black",
+                "indian",
+                "latino hispanic",
+                "middle eastern",
+                "white"] :
+
+        new_key = "total" + "_" + cat.strip().replace(" ", "_")
+
+        if cat.strip() not in df_new.columns:
+            dict_stats[new_key] = [0]
+
+        else:
+            dict_stats[new_key] = [df_new[cat].sum()]
+
 
     df_stats = pd.DataFrame.from_dict(dict_stats)
 
