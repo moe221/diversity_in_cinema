@@ -11,7 +11,7 @@ from diversity_in_cinema.utils import final_stats
 
 
 
-def main():
+def create_stats_csv():
 
     file_names = gcp_file_names(BUCKET_NAME, "output")
     file_names.remove("summary.csv")
@@ -44,4 +44,4 @@ def main():
 
 if __name__ == "__main__":
 
-    main()
+    create_stats_csv()

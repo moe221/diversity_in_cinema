@@ -6,6 +6,8 @@ from google.cloud import storage
 
 from diversity_in_cinema.params import *
 from diversity_in_cinema.scraper import get_movies
+from diversity_in_cinema.statistics import create_stats_csv
+
 from diversity_in_cinema.scraper import face_scraper
 from diversity_in_cinema.cnn_model import predict_face
 from diversity_in_cinema.utils import upload_file_to_gcp
@@ -140,13 +142,14 @@ if __name__ == "__main__":
 
 
     # testing
-
     movie_list_df = pd.read_csv(
         f"gs://{BUCKET_NAME}/data/shuffled_movie_list.csv", index_col=None)
 
     movie_list = movie_list_df["movies"].values
-    main(movie_list[366: 550], frame_interval=3, workers=50)
+    main(movie_list[550: 733], frame_interval=3, workers=50)
 
+    # calculating statistics
+    create_stats_csv()
 
     # next [184: 366]
     # next [366: 550]
