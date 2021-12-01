@@ -3,6 +3,8 @@ from PIL import Image
 
 from tensorflow import keras
 from tensorflow.python.lib.io import file_io
+from diversity_in_cinema.params import *
+
 
 import os
 import io
@@ -60,9 +62,10 @@ def gcp_file_names(bucket_name, subfolders):
     """
 
     client = storage.Client()
-    file_names = [str(x).split(",")[1].replace(
-        f"{subfolders}/", "").strip() for x in \
-            client.list_blobs(bucket_name, prefix=subfolders)]
+    file_names = [str(x).split(f"{subfolders}/")[1].\
+        split(".csv")[0].\
+            strip() + ".csv" for x in \
+                client.list_blobs(bucket_name, prefix=subfolders)]
 
     return file_names
 
@@ -257,3 +260,14 @@ def final_stats(df):
     final_df = pd.DataFrame.from_dict(dict_stats)
 
     return final_df
+
+
+
+if __name__ == "__main__":
+    client = storage.Client()
+    my_list = [str(x).split(f"output/")[1].\
+        split(".csv")[0].\
+            strip() for x in
+    client.list_blobs(BUCKET_NAME, prefix="output")]
+
+    print(my_list)
