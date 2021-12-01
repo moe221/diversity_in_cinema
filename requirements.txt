@@ -31,6 +31,7 @@ six>=1.14
 joblib
 memoized-property
 termcolor
+tqdm
 
 # scraping
 requests
@@ -44,7 +45,12 @@ selenium
 # face detection
 facenet-pytorch
 
-
 # deepl learning
 deepface
 tensorflow==2.5.2
+
+# Face Averaging
+cmake
+dlib
+opencv-python
+imutils
