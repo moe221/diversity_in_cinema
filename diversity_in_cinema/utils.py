@@ -69,6 +69,13 @@ def woman_of_color(x):
         return 1
     return 0
 
+
+def only_mult_women(x):
+    if x == 2:
+        return 1
+    return 0
+
+
 def baseline_stats(df):
     '''Creates a dataframe of engineered/composite features from preprocessed output'''
     df_new = output_preproc(df)
@@ -80,6 +87,12 @@ def baseline_stats(df):
 
     df_new['face_count'] = df_new['Man'] + df_new['Woman']
 
+    df_new.loc[df_new['Man'] == 0, 'only mult women'] = 1
+    df_new.loc[df_new['Woman'] >= 2, 'only mult women'] = 2
+
+    df_new['only mult women'] = df_new['only mult women'].apply(
+        only_mult_women)
+
     only_men = len(df_new[df_new['Woman'] == 0])
     only_women = len(df_new[df_new['Man'] == 0])
 
@@ -89,15 +102,16 @@ def baseline_stats(df):
         'total_faces': [df_new['face_count'].sum()],
         'total_men': [df_new['Man'].sum()],
         'total_women': [df_new['Woman'].sum()],
+        'only_men': only_men,
+        'only_women': only_women,
+        'only_mult_women': [df_new['only mult women'].sum()],
         'total_asian': [df_new['asian'].sum()],
         'total_black': [df_new['black'].sum()],
         'total_indian': [df_new['indian'].sum()],
         'total_latino_hispanic': [df_new['latino hispanic'].sum()],
         'total_middle_eastern': [df_new['middle eastern'].sum()],
         'total_white': [df_new['white'].sum()],
-        'total_women_of_color': [df_new['women_of_color'].sum()],
-        'only_men': only_men,
-        'only_women': only_women
+        'total_women_of_color': [df_new['women_of_color'].sum()]
     }
 
     df_stats = pd.DataFrame.from_dict(dict_stats)
@@ -118,6 +132,8 @@ def final_stats(df):
         df_new['only_men'] / df_new['total_frames'] * 100,
         'only_women':
         df_new['only_women'] / df_new['total_frames'] * 100,
+        'only_mult_women':
+        df_new['only_mult_women'] / df_new['total_frames'] * 100,
         'asian_screentime':
         df_new['total_asian'] / df_new['total_faces'] * 100,
         'black_screentime':
