@@ -7,25 +7,29 @@ import glob
 from imutils import face_utils
 from tqdm import tqdm
 import time
+# from utils_cloud import getImagePixels # Because of this import, make sure to run all the fns in this file imported somewhere in the superfolder (/diversity_in_cinema)
 
-def get_images_with_landmarks(image_folder, model_file = 'shape_predictor_68_face_landmarks.dat', verbose = 0):
+def get_landmarks(images, model_file = 'shape_predictor_68_face_landmarks.dat', verbose = 0):
     
+
     # Load dlib face detection and prediction
     detector = dlib.get_frontal_face_detector()
     predictor = dlib.shape_predictor(model_file)
 
-    images = []
+    done_images = []
     landmarks = []
 
-    if verbose >= 1: print(f'Step 1: Get {len(glob.glob(os.path.join(image_folder, "*.jpg")))} Images and Detect Faces')
+    if verbose >= 1: print(f'Step 1: Detect Faces in {len(images)} Images')
 
-    for f in tqdm(glob.glob(os.path.join(image_folder, "*.jpg")), disable = verbose<=0):
-        
+    for img in tqdm(images):
         
         if verbose >= 2: print("Processing file: {}".format(f))
 
         #img = dlib.load_rgb_image(f)
-        img = cv2.imread(f)
+        # if from_google:
+        #     img = getImagePixels(f, google_bucket)
+        # else:
+        #     img = cv2.imread(f)
 
         dets = detector(img, 1)
 
@@ -49,81 +53,81 @@ def get_images_with_landmarks(image_folder, model_file = 'shape_predictor_68_fac
 
         landmarks.append(face_shape_final)
 
-        # Now load image
-        img = cv2.imread(f)
+        # # Now load image
+        # img = cv2.imread(f)
 
             # Convert to floating point
         img = np.float32(img)/255.0
 
-        images.append(img)
+        done_images.append(img)
     
-    return images, landmarks
+    return done_images, landmarks
 
-def get_images_with_landmarks_and_style_on_em(image_folder, model_file = 'shape_predictor_68_face_landmarks.dat', verbose = 0):
-    '''
-    Same as above, but visualizes progress in a window that looks cool and scientific.
-    '''
+# def get_images_with_landmarks_and_style_on_em(image_paths, model_file = 'shape_predictor_68_face_landmarks.dat', verbose = 0):
+#     '''
+#     Same as above, but visualizes progress in a window that looks cool and scientific.
+#     '''
 
-    # Load dlib face detection and prediction
-    detector = dlib.get_frontal_face_detector()
-    predictor = dlib.shape_predictor(model_file)
-    win = dlib.image_window()
+#     # Load dlib face detection and prediction
+#     detector = dlib.get_frontal_face_detector()
+#     predictor = dlib.shape_predictor(model_file)
+#     win = dlib.image_window()
 
-    images = []
-    landmarks = []
+#     images = []
+#     landmarks = []
 
-    if verbose >= 1: print(f'Step 1: Getting {len(glob.glob(os.path.join(image_folder, "*.jpg")))} images')
+#     if verbose >= 1: print(f'Step 1: Getting {len(image_paths)} images')
 
-    counter = 0
-    for f in tqdm(glob.glob(os.path.join(image_folder, "*.jpg")), disable = verbose<=0):
+#     counter = 0
+#     for f in tqdm(image_paths, disable = verbose<=0):
         
         
-        if verbose >= 2: print("Processing file: {}".format(f))
+#         if verbose >= 2: print("Processing file: {}".format(f))
 
-        img = dlib.load_rgb_image(f)
+#         img = dlib.load_rgb_image(f)
         
-        if counter % 2 == 0:
-            win.clear_overlay()
-            win.set_image(img)
-            time.sleep(1)
+#         if counter % 2 == 0:
+#             win.clear_overlay()
+#             win.set_image(img)
+#             time.sleep(1)
 
-        dets = detector(img, 1)
+#         dets = detector(img, 1)
 
-        #TODO pick largest face from dets instead of just first one
+#         #TODO pick largest face from dets instead of just first one
         
-        try: 
-            face_box = dets[0]
-            if verbose >= 2: print("Found {} faces".format(len(dets)))
-        except: 
-            if verbose >= 2: print('Found no faces')
-            continue # If dets doesn't have a zero-index (is 0 long), no faces found. skip iteration and go to next image
+#         try: 
+#             face_box = dets[0]
+#             if verbose >= 2: print("Found {} faces".format(len(dets)))
+#         except: 
+#             if verbose >= 2: print('Found no faces')
+#             continue # If dets doesn't have a zero-index (is 0 long), no faces found. skip iteration and go to next image
 
-        # Get the landmarks/parts for the face
-        shape = predictor(img, face_box)
+#         # Get the landmarks/parts for the face
+#         shape = predictor(img, face_box)
         
-        if counter % 2 == 0: 
-            win.add_overlay(shape)
-            time.sleep(1)
+#         if counter % 2 == 0: 
+#             win.add_overlay(shape)
+#             time.sleep(1)
 
-        shape_as_np = face_utils.shape_to_np(shape)
-        if verbose >= 2: print(shape_as_np)
+#         shape_as_np = face_utils.shape_to_np(shape)
+#         if verbose >= 2: print(shape_as_np)
 
-        at = shape_as_np.T 
-        face_shape_final = list(zip(at[0],at[1]))
+#         at = shape_as_np.T 
+#         face_shape_final = list(zip(at[0],at[1]))
 
-        landmarks.append(face_shape_final)
+#         landmarks.append(face_shape_final)
 
-        # Now load image
-        img = cv2.imread(f)
+#         # Now load image
+#         img = cv2.imread(f)
 
-            # Convert to floating point
-        img = np.float32(img)/255.0
+#             # Convert to floating point
+#         img = np.float32(img)/255.0
 
-        images.append(img)
+#         images.append(img)
     
-        counter += 1
+#         counter += 1
 
-    return images, landmarks
+#     return images, landmarks
 
 def similarityTransform(inPoints, outPoints) :
     s60 = math.sin(60*math.pi/180)
@@ -310,31 +314,29 @@ def crop_out_black(img, out_dim = 900, threshold = 0.2):
 
     return img_resized
 
-def average_image(image_path,
+def average_image(images,
                   output_dim = 900,
                   upscale = 1,
                   verbose = 1,
+                  face_predictor_path = 'shape_predictor_68_face_landmarks.dat',
                   **kwargs):
     '''
-    Takes in the path to an image folder and dimensions of the output image. Returns an average of all the faces 
+    Takes in a list of image paths and dimensions of the output image. Returns an average of all the faces 
     it identifies in the images.
-    :param image_path: string, The path to the image folder.
+    :param images: List of np arrays, The faces to average.
     :param output_dim: int, The x- and y-dimension of the output (output is always square)
     :param upscale: float, increases the resolution of the output, greatly hurts performance
     :param verbose: [0,1,2] 0 for no console output, 1 for some, 2 for far too much.
     '''
     
     disable_tqdm = verbose <= 0
-
-    path = image_path
     
     # Dimensions of output image (scale back down later)
     w,h = int(output_dim*upscale), int(output_dim*upscale)
     
-    if 'style_on_em' in kwargs:
-        if kwargs['style_on_em']: images, allPoints = get_images_with_landmarks_and_style_on_em(path, verbose = 1)
-        else: images, allPoints = get_images_with_landmarks(path, verbose=1)
-    else: images, allPoints = get_images_with_landmarks(path, verbose=1)
+    images, allPoints = get_landmarks(images, 
+                                        model_file = face_predictor_path,
+                                        verbose=1)
 
     # Eye corners
     eyecornerDst = [ (int(0.3 * w ), int(h/3)), (int(0.7 * w ), int(h/3)) ]
