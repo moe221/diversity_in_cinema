@@ -5,7 +5,7 @@
 .vscode/
 raw_data/
 notebooks/
-
+diversity_in_cinema/face_averaging/outputs
 
 *.csv
 *.png
