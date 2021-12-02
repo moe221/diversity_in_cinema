@@ -7,6 +7,7 @@ from diversity_in_cinema.params import *
 
 
 import os
+from io import BytesIO
 import io
 
 from google.cloud import storage
@@ -92,6 +93,7 @@ def upload_image_to_gcp(image, bucket_name, image_name):
     Function for uploading an image to a GCP Bucket
 
     """
+    image = Image.fromarray(image)
 
     client = storage.Client()
     bucket = client.get_bucket(bucket_name)
@@ -206,22 +208,36 @@ def baseline_stats(df):
     only_men = len(df_new[df_new['Woman'] == 0])
     only_women = len(df_new[df_new['Man'] == 0])
 
+
     dict_stats = {
         'total_frames': [len(df_new)],
         'total_seconds': [len(df_new) / 2],
         'total_faces': [df_new['face_count'].sum()],
         'total_men': [df_new['Man'].sum()],
         'total_women': [df_new['Woman'].sum()],
-        'total_asian': [df_new['asian'].sum()],
-        'total_black': [df_new['black'].sum()],
-        'total_indian': [df_new['indian'].sum()],
-        'total_latino_hispanic': [df_new['latino hispanic'].sum()],
-        'total_middle_eastern': [df_new['middle eastern'].sum()],
-        'total_white': [df_new['white'].sum()],
         'total_women_of_color': [df_new['women_of_color'].sum()],
-        'only_men': only_men,
-        'only_women': only_women
+        'only_men_count': only_men,
+        'only_women_count': only_women
     }
+
+
+    for cat in ["Man",
+                "Woman",
+                "asian",
+                "black",
+                "indian",
+                "latino hispanic",
+                "middle eastern",
+                "white"] :
+
+        new_key = "total" + "_" + cat.strip().replace(" ", "_")
+
+        if cat.strip() not in df_new.columns:
+            dict_stats[new_key] = [0]
+
+        else:
+            dict_stats[new_key] = [df_new[cat].sum()]
+
 
     df_stats = pd.DataFrame.from_dict(dict_stats)
 
@@ -238,9 +254,9 @@ def final_stats(df):
         'woman_screentime':
         df_new['total_women'] / df_new['total_faces'] * 100,
         'only_men':
-        df_new['only_men'] / df_new['total_frames'] * 100,
+        df_new['only_men_count'] / df_new['total_frames'] * 100,
         'only_women':
-        df_new['only_women'] / df_new['total_frames'] * 100,
+        df_new['only_women_count'] / df_new['total_frames'] * 100,
         'asian_screentime':
         df_new['total_asian'] / df_new['total_faces'] * 100,
         'black_screentime':
@@ -257,9 +273,21 @@ def final_stats(df):
         df_new['total_women_of_color'] / df_new['total_frames'] * 100
     }
 
-    final_df = pd.DataFrame.from_dict(dict_stats)
+    final_df = pd.concat([pd.DataFrame.from_dict(dict_stats), df_new], axis=1)
 
     return final_df
+
+
+def getImagePixels(file, bucket_name):
+
+    bucket = client.get_bucket(bucket_name)
+    blob = bucket.get_blob(f"{file}")
+    data = blob.download_as_string()
+
+    img = Image.open(BytesIO(data))
+    img = np.array(img)
+
+    return img
 
 
 
