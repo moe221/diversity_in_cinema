@@ -62,7 +62,7 @@ pypi:
 PROJECT_ID=le-wagon-bootcamp-328018
 
 # bucket name - replace with your GCP bucket name
-BUCKET_NAME=diversity-in-cinema-735
+BUCKET_NAME=wagon-data-735-movie-diversity
 
 # choose your region from https://cloud.google.com/storage/docs/locations#available_locations
 REGION=europe-west1
@@ -102,7 +102,7 @@ FILENAME_PIPELINE=data
 
 JOB_NAME_1=diversity_in_cinema_training_pipeline_gender_$(shell date +'%Y%m%d_%H%M%S')
 JOB_NAME_2=diversity_in_cinema_training_pipeline_race_$(shell date +'%Y%m%d_%H%M%S')
-JOB_NAME_3=diversity_in_cinema_data_pipeline_4_$(shell date +'%Y%m%d_%H%M%S')
+JOB_NAME_3=diversity_in_cinema_data_pipeline_gabi_$(shell date +'%Y%m%d_%H%M%S')
 
 
 
