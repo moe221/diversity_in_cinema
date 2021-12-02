@@ -6,8 +6,6 @@ import dlib
 import glob
 from imutils import face_utils
 from tqdm import tqdm
-import time
-# from utils_cloud import getImagePixels # Because of this import, make sure to run all the fns in this file imported somewhere in the superfolder (/diversity_in_cinema)
 
 def get_landmarks(images, model_file = 'shape_predictor_68_face_landmarks.dat', verbose = 0):
     
@@ -62,72 +60,6 @@ def get_landmarks(images, model_file = 'shape_predictor_68_face_landmarks.dat', 
         done_images.append(img)
     
     return done_images, landmarks
-
-# def get_images_with_landmarks_and_style_on_em(image_paths, model_file = 'shape_predictor_68_face_landmarks.dat', verbose = 0):
-#     '''
-#     Same as above, but visualizes progress in a window that looks cool and scientific.
-#     '''
-
-#     # Load dlib face detection and prediction
-#     detector = dlib.get_frontal_face_detector()
-#     predictor = dlib.shape_predictor(model_file)
-#     win = dlib.image_window()
-
-#     images = []
-#     landmarks = []
-
-#     if verbose >= 1: print(f'Step 1: Getting {len(image_paths)} images')
-
-#     counter = 0
-#     for f in tqdm(image_paths, disable = verbose<=0):
-        
-        
-#         if verbose >= 2: print("Processing file: {}".format(f))
-
-#         img = dlib.load_rgb_image(f)
-        
-#         if counter % 2 == 0:
-#             win.clear_overlay()
-#             win.set_image(img)
-#             time.sleep(1)
-
-#         dets = detector(img, 1)
-
-#         #TODO pick largest face from dets instead of just first one
-        
-#         try: 
-#             face_box = dets[0]
-#             if verbose >= 2: print("Found {} faces".format(len(dets)))
-#         except: 
-#             if verbose >= 2: print('Found no faces')
-#             continue # If dets doesn't have a zero-index (is 0 long), no faces found. skip iteration and go to next image
-
-#         # Get the landmarks/parts for the face
-#         shape = predictor(img, face_box)
-        
-#         if counter % 2 == 0: 
-#             win.add_overlay(shape)
-#             time.sleep(1)
-
-#         shape_as_np = face_utils.shape_to_np(shape)
-#         if verbose >= 2: print(shape_as_np)
-
-#         at = shape_as_np.T 
-#         face_shape_final = list(zip(at[0],at[1]))
-
-#         landmarks.append(face_shape_final)
-
-#         # Now load image
-#         img = cv2.imread(f)
-
-#             # Convert to floating point
-#         img = np.float32(img)/255.0
-
-#         images.append(img)
-    
-#         counter += 1
-
-#     return images, landmarks
 
 def similarityTransform(inPoints, outPoints) :
     s60 = math.sin(60*math.pi/180)
@@ -253,22 +185,6 @@ def warpTriangle(img1, img2, t1, t2) :
     img2[r2[1]:r2[1]+r2[3], r2[0]:r2[0]+r2[2]] = img2[r2[1]:r2[1]+r2[3], r2[0]:r2[0]+r2[2]] * ( (1.0, 1.0, 1.0) - mask )
      
     img2[r2[1]:r2[1]+r2[3], r2[0]:r2[0]+r2[2]] = img2[r2[1]:r2[1]+r2[3], r2[0]:r2[0]+r2[2]] + img2Rect
-
-def black_to_white(img, threshold = 0.2):
-    '''
-    This creates spooky ghost images where the eyes are cut out and the outline of the face is weird.
-    Use at your own risk.
-    '''
-
-    black_pixels = np.where(
-    (img[:, :, 0] <= threshold) & 
-    (img[:, :, 1] <= threshold) & 
-    (img[:, :, 2] <= threshold)
-    )
-
-    img[black_pixels] = [255, 255, 255]
-
-    return img
 
 def crop_out_black(img, out_dim = 900, threshold = 0.2):
     '''

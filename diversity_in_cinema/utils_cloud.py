@@ -10,7 +10,7 @@ from google.api_core import page_iterator
 
 
 
-def gcp_file_names(bucket_name, subfolders, file_type = ".csv"):
+def gcp_file_names(bucket_name, subfolders, file_type = ".csv"): #TODO implement file type handling 
 
     """
     Function ro grab file names from a GCP bucket directory
@@ -29,11 +29,6 @@ def gcp_file_names(bucket_name, subfolders, file_type = ".csv"):
             strip() + ".jpg" for x in \
                 client.list_blobs(bucket_name, prefix=subfolders)]
 
-    #blobs = client.list_blobs(bucket_name, prefix=subfolders)
-
-    #bucket = client.bucket(bucket_name)
-
-    #for blob in blobs: print(str(blob.name))
 
     return file_names
 
@@ -73,29 +68,6 @@ def gcp_subdir_names(bucket_name, prefix):
     )
 
     return [x[len(prefix):-1].lstrip() for x in iterator]
-
-# def gcp_file_names(bucket_name, subfolders):
-
-#     """
-#     Function ro grab file names from a GCP bucket directory
-
-#     Parameters:
-
-#     bucket_name: Name of GCP bucket
-#     subfolders: complete subfolder path as a string where file names should
-#                 be retrieved from in the format folder_1/folder_2/.../folder_n
-
-#     """
-
-#     client = storage.Client.create_anonymous_client()
-#     bucket = client.bucket(bucket_name)
-#     # file_names = [str(x).split(f"{subfolders}/")[1].\
-#     #     split(".csv")[0].\
-#     #         strip() + ".csv" for x in \
-#     #             bucket.list_blobs()]
-
-#     return list(bucket.list_blobs(prefix=subfolders))
-
 
 def upload_file_to_gcp(file, bucket_name, file_name, file_type="text/csv"):
 
