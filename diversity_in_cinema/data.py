@@ -124,7 +124,7 @@ def main(movie_list, frame_interval, workers):
 
 
         print(f"[{datetime.datetime.now()}] - uploading results to GCP")
-        upload_file_to_gcp(df_analyzed, BUCKET_NAME, f"output/{movie}.csv")
+        upload_file_to_gcp(df_analyzed, BUCKET_NAME, f"output/{movie.strip()}.csv")
 
         # update overview file
         face_count = len(df_analyzed)
@@ -137,9 +137,10 @@ def main(movie_list, frame_interval, workers):
 if __name__ == "__main__":
 
     # scrape all movies on movie-screencaps.com
-    movie_list = get_movies()
-    movie_list = remove_duplicate_4k_titles()
-    main(movie_list, frame_interval=3, workers=100)
+    movie_list = list(get_movies().keys())
+    movie_list = remove_duplicate_4k_titles(movie_list)
+    print(movie_list)
+    #main(movie_list, frame_interval=3, workers=100)
 
 
     # testing
