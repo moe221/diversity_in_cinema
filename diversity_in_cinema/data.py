@@ -139,8 +139,7 @@ if __name__ == "__main__":
     # scrape all movies on movie-screencaps.com
     movie_list = list(get_movies().keys())
     movie_list = remove_duplicate_4k_titles(movie_list)
-    print(movie_list)
-    #main(movie_list, frame_interval=3, workers=100)
+    main(movie_list, frame_interval=3, workers=100)
 
 
     # testing
