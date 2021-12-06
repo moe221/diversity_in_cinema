@@ -137,19 +137,20 @@ def main(movie_list, frame_interval, workers):
 if __name__ == "__main__":
 
     # scrape all movies on movie-screencaps.com
-    # movie_list = get_movies()
-    # movie_list = remove_duplicate_4k_titles()
+    movie_list = get_movies()
+    movie_list = remove_duplicate_4k_titles()
+    main(movie_list, frame_interval=3, workers=100)
 
 
     # testing
-    movie_list_df = pd.read_csv(
-        f"gs://{BUCKET_NAME}/data/shuffled_movie_list.csv", index_col=None)
+    # movie_list_df = pd.read_csv(
+    #     f"gs://{BUCKET_NAME}/data/shuffled_movie_list.csv", index_col=None)
 
-    movie_list = movie_list_df["movies"].values
-    main(movie_list[550: 733], frame_interval=3, workers=50)
+    # movie_list = movie_list_df["movies"].values
+    # main(movie_list[550: 733], frame_interval=3, workers=50)
 
     # calculating statistics
-    create_stats_csv()
+    # create_stats_csv()
 
     # next [184: 366]
     # next [366: 550]

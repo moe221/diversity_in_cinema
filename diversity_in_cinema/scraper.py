@@ -248,7 +248,7 @@ def face_scraper(title, frame_interval, workers):
 
                         image = Image.fromarray(face)
                         image_name = f"face_images/\
-                            {title}/{frame_id}_face{i}.jpg"
+                            {title.strip()}/{frame_id}_face{i}.jpg"
 
                         upload_image_to_gcp(image, BUCKET_NAME, image_name)
                 else:

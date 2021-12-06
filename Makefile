@@ -102,7 +102,7 @@ FILENAME_PIPELINE=data
 
 JOB_NAME_1=diversity_in_cinema_training_pipeline_gender_$(shell date +'%Y%m%d_%H%M%S')
 JOB_NAME_2=diversity_in_cinema_training_pipeline_race_$(shell date +'%Y%m%d_%H%M%S')
-JOB_NAME_3=diversity_in_cinema_data_pipeline_4_$(shell date +'%Y%m%d_%H%M%S')
+JOB_NAME_3=diversity_in_cinema_data_pipeline_full_$(shell date +'%Y%m%d_%H%M%S')
 
 
 
