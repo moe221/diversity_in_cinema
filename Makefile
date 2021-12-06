@@ -62,7 +62,7 @@ pypi:
 PROJECT_ID=le-wagon-bootcamp-328018
 
 # bucket name - replace with your GCP bucket name
-BUCKET_NAME=wagon-data-735-movie-diversity
+BUCKET_NAME=diversity-in-cinema-735
 
 # choose your region from https://cloud.google.com/storage/docs/locations#available_locations
 REGION=europe-west1
@@ -96,13 +96,15 @@ PACKAGE_NAME=diversity_in_cinema
 FILENAME_GENDER=trainer_gender
 FILENAME_RACE=trainer_race
 FILENAME_PIPELINE=data
+FILENAME_Face=face_averaging_main
 
 
 ##### Job - - - - - - - - - - - - - - - - - - - - - - - - -
 
 JOB_NAME_1=diversity_in_cinema_training_pipeline_gender_$(shell date +'%Y%m%d_%H%M%S')
 JOB_NAME_2=diversity_in_cinema_training_pipeline_race_$(shell date +'%Y%m%d_%H%M%S')
-JOB_NAME_3=diversity_in_cinema_data_pipeline_gabi_$(shell date +'%Y%m%d_%H%M%S')
+JOB_NAME_3=diversity_in_cinema_data_pipeline_1_$(shell date +'%Y%m%d_%H%M%S')
+JOB_NAME_4=diversity_in_cinema_data_pipeline_face_$(shell date +'%Y%m%d_%H%M%S')
 
 
 
@@ -112,7 +114,7 @@ run_locally:
 
 # will store the packages uploaded to GCP for the training
 BUCKET_TRAINING_FOLDER = 'trainings'
-BUCKET_PIPELINE_FOLDER = "pipeline"
+BUCKET_PIPELINE_FOLDER = "morphing"
 PYTHON_VERSION=3.7
 RUNTIME_VERSION=1.15
 
@@ -145,6 +147,18 @@ gcp_submit_data_scraping_pipeline:
 		--job-dir gs://${BUCKET_NAME}/${BUCKET_PIPELINE_FOLDER} \
 		--package-path ${PACKAGE_NAME} \
 		--module-name ${PACKAGE_NAME}.${FILENAME_PIPELINE} \
+		--python-version=${PYTHON_VERSION} \
+		--runtime-version=${RUNTIME_VERSION} \
+		--region ${REGION} \
+		--scale-tier=CUSTOM \
+		--master-machine-type=n1-highmem-8 \
+		--stream-logs
+
+gcp_submit_data_face_pipeline:
+	gcloud ai-platform jobs submit training ${JOB_NAME_4} \
+		--job-dir gs://${BUCKET_NAME}/${BUCKET_PIPELINE_FOLDER} \
+		--package-path ${PACKAGE_NAME} \
+		--module-name ${PACKAGE_NAME}.${FILENAME_Face} \
 		--python-version=${PYTHON_VERSION} \
 		--runtime-version=${RUNTIME_VERSION} \
 		--region ${REGION} \

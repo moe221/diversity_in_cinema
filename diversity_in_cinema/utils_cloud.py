@@ -10,7 +10,7 @@ from google.api_core import page_iterator
 
 
 
-def gcp_file_names(bucket_name, subfolders, file_type = ".csv"): #TODO implement file type handling 
+def gcp_file_names(bucket_name, subfolders, file_type = ".csv"): #TODO implement file type handling
 
     """
     Function ro grab file names from a GCP bucket directory
@@ -23,7 +23,7 @@ def gcp_file_names(bucket_name, subfolders, file_type = ".csv"): #TODO implement
 
     """
 
-    client = storage.Client.create_anonymous_client()
+    client = storage.Client()
     file_names = [str(x).split(f"{subfolders}/")[1].\
         split(".jpg")[0].\
             strip() + ".jpg" for x in \
@@ -54,7 +54,7 @@ def gcp_subdir_names(bucket_name, prefix):
         "delimiter": '/'
     }
 
-    gcs = storage.Client.create_anonymous_client()
+    gcs = storage.Client()
 
     path = "/b/" + bucket_name + "/o"
 
@@ -97,7 +97,7 @@ def upload_image_to_gcp(image, bucket_name, image_name):
     im = im.astype(np.uint8)
     image = Image.fromarray(im)
 
-    client = storage.Client.create_anonymous_client()
+    client = storage.Client()
     bucket = client.get_bucket(bucket_name)
     blob = bucket.blob(f"{image_name}")
 
@@ -109,9 +109,9 @@ def upload_image_to_gcp(image, bucket_name, image_name):
 
 def bulk_get_image_pixels(files, bucket_name):
 
-    client = storage.Client.create_anonymous_client()
+    client = storage.Client()
     bucket = client.get_bucket(bucket_name)
-    
+
     out = []
 
     for file in files:
@@ -120,12 +120,12 @@ def bulk_get_image_pixels(files, bucket_name):
         img = Image.open(BytesIO(data))
         img = np.array(img)
         out.append(img)
-    
+
     return out
 
 def getImagePixels(file, bucket_name):
 
-    client = storage.Client.create_anonymous_client()
+    client = storage.Client()
     bucket = client.get_bucket(bucket_name)
     blob = bucket.get_blob(f"{file}")
     data = blob.download_as_string()
