@@ -103,13 +103,7 @@ FILENAME_Face=face_averaging_main
 
 JOB_NAME_1=diversity_in_cinema_training_pipeline_gender_$(shell date +'%Y%m%d_%H%M%S')
 JOB_NAME_2=diversity_in_cinema_training_pipeline_race_$(shell date +'%Y%m%d_%H%M%S')
-<<<<<<< HEAD
-JOB_NAME_3=diversity_in_cinema_data_pipeline_1_$(shell date +'%Y%m%d_%H%M%S')
-JOB_NAME_4=diversity_in_cinema_data_pipeline_face_$(shell date +'%Y%m%d_%H%M%S')
-
-=======
 JOB_NAME_3=diversity_in_cinema_data_pipeline_full_$(shell date +'%Y%m%d_%H%M%S')
->>>>>>> 8ad4e53d3f678699abca90dc1bd0505f8f62cce0
 
 
 run_locally:
