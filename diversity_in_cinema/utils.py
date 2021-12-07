@@ -93,8 +93,6 @@ def upload_image_to_gcp(image, bucket_name, image_name):
     Function for uploading an image to a GCP Bucket
 
     """
-    image = Image.fromarray(image)
-
     client = storage.Client()
     bucket = client.get_bucket(bucket_name)
     blob = bucket.blob(f"{image_name}")

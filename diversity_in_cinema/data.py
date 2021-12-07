@@ -113,7 +113,8 @@ def main(movie_list, frame_interval, workers):
             faces_df, total_frames = face_scraper(movie,
                                                   frame_interval,
                                                   workers)
-        except:
+        except Exception as e:
+            print(f"Something happend when scarping faces : {e}")
             continue
 
         print("classifying faces")
@@ -139,7 +140,7 @@ if __name__ == "__main__":
     # scrape all movies on movie-screencaps.com
     movie_list = list(get_movies().keys())
     movie_list = remove_duplicate_4k_titles(movie_list)
-    main(movie_list, frame_interval=3, workers=100)
+    main(movie_list, frame_interval=3, workers=50)
 
 
     # testing
