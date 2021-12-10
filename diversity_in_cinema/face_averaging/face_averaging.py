@@ -1,7 +1,6 @@
 from os.path import isfile, join
 from os import listdir
 from logging import error
-import os
 import cv2
 import numpy as np
 import math
@@ -10,7 +9,7 @@ import glob
 from imutils import face_utils
 from tqdm import tqdm
 
-def get_landmarks(images, model_file='shape_predictor_68_face_landmarks.dat', verbose=0):
+def get_landmarks(images, model_file='shape_predictor_68_face_landmarks.dat', verbose=2):
 
     # Load dlib face detection and prediction
     detector = dlib.get_frontal_face_detector()
@@ -19,17 +18,16 @@ def get_landmarks(images, model_file='shape_predictor_68_face_landmarks.dat', ve
     done_images = []
     landmarks = []
 
-    if verbose >= 1: print(f'Step 1: Detect Faces in {len(images)} Images')
+    if verbose >= 1:
+        print(f'Step 1: Detect Faces in {len(images)} Images')
 
     for img in tqdm(images):
 
-        if verbose >= 2: print("Processing file: {}".format(f))
-
-        #img = dlib.load_rgb_image(f)
+        #img = dlib.load_rgb_image(img)
         # if from_google:
         #     img = getImagePixels(f, google_bucket)
         # else:
-        #     img = cv2.imread(f)
+        img = cv2.imread(img)
 
         dets = detector(img, 1)
 
@@ -39,7 +37,8 @@ def get_landmarks(images, model_file='shape_predictor_68_face_landmarks.dat', ve
             face_box = dets[0]
             if verbose >= 2: print("Found {} faces".format(len(dets)))
         except:
-            if verbose >= 2: print('Found no faces')
+            if verbose >= 2:
+                print('Found no faces')
             continue # If dets doesn't have a zero-index (is 0 long), no faces found. skip iteration and go to next image
 
         # Get the landmarks/parts for the face
@@ -52,9 +51,6 @@ def get_landmarks(images, model_file='shape_predictor_68_face_landmarks.dat', ve
         face_shape_final = list(zip(at[0],at[1]))
 
         landmarks.append(face_shape_final)
-
-        # # Now load image
-        # img = cv2.imread(f)
 
             # Convert to floating point
         img = np.float32(img)/255.0
@@ -188,7 +184,7 @@ def warpTriangle(img1, img2, t1, t2) :
 
     img2[r2[1]:r2[1]+r2[3], r2[0]:r2[0]+r2[2]] = img2[r2[1]:r2[1]+r2[3], r2[0]:r2[0]+r2[2]] + img2Rect
 
-def crop_out_black(img, out_dim = 900, threshold = 0.09):
+def crop_out_black(img, out_dim = 900, threshold = 0.2):
     '''
     Takes in an image of any dimension, crops out space that's all black (or close),
     resizes to a square of side length out_dim pixels.
@@ -226,6 +222,8 @@ def crop_out_black(img, out_dim = 900, threshold = 0.09):
         upper_bound = int(vertical_center - nonblack_w_size/2)
         lower_bound = int(vertical_center + nonblack_w_size/2)
 
+        print(left_bound, right_bound, lower_bound, upper_bound)
+
     img_cropped = img[lower_bound:upper_bound,left_bound:right_bound]
 
     try:
@@ -259,7 +257,7 @@ def average_image(images,
 
     images, allPoints = get_landmarks(images,
                                         model_file = face_predictor_path,
-                                        verbose=1)
+                                        verbose=2)
 
     # Eye corners
     eyecornerDst = [ (int(0.3 * w ), int(h/3)), (int(0.7 * w ), int(h/3)) ]
@@ -296,9 +294,7 @@ def average_image(images,
 
         # Apply similarity transform on points
         points2 = np.reshape(np.array(points1), (68,1,2))
-
         points = cv2.transform(points2, tform)
-
         points = np.float32(np.reshape(points, (68, 2)))
 
         # Append boundary points. Will be used in Delaunay Triangulation
@@ -351,18 +347,17 @@ def average_image(images,
     output = output / numImages
 
     # Crop to square without black and 900x900
-    output = crop_out_black(output, out_dim=output_dim)
+    #output = crop_out_black(output, out_dim=output_dim)
 
     return output
 
 
 if __name__ == "__main__":
 
-    mypath = "/Users/Moe/code/moe221/final_project/diversity_in_cinema/Black\ Panther\ \(2018\)"
+    mypath = "/Users/Moe/code/moe221/final_project/diversity_in_cinema/Black_Panther/*.jpg"
+    image_paths = glob.glob(mypath)
+    face_predictor_path = "/Users/Moe/code/moe221/final_project/diversity_in_cinema/diversity_in_cinema/face_averaging/shape_predictor_68_face_landmarks.dat"
+    img_out = average_image(
+        image_paths[:300], face_predictor_path=face_predictor_path)
 
-    print(glob.glob(mypath))
-
-
-    #img = cv2.imread('/path_to_image/opencv-logo.png', 0)
-
-    #average_image()
+    cv2.imwrite("/Users/Moe/code/moe221/final_project/diversity_in_cinema/bp_test.jpg",img_out)

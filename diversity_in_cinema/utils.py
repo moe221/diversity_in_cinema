@@ -27,7 +27,7 @@ def extract_face_mtcnn(image):
     """
 
     mtcnn = MTCNN(keep_all=True,
-                      min_face_size=30,
+                      min_face_size=50,
                       post_process=False,
                       image_size=224)
     face_list = []
@@ -38,9 +38,9 @@ def extract_face_mtcnn(image):
     if boxes is not None:
         for box, prob in zip(boxes, probs):
 
-            # return only faces detcted with 97% or higher
+            # return only faces detcted with 99% or higher
             # certainty
-            if prob >= 0.97:
+            if prob >= 0.99:
 
                 face = extract_face(img, box)
                 out = np.array(face.permute(1, 2, 0))
